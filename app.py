@@ -16,7 +16,7 @@ st.set_page_config(
 @st.cache_resource
 def load_yolov5_model(model_path):
     """Load YOLOv5 model with caching"""
-    model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_path, force_reload=False)
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_path, force_reload=False, trust_repo=True)
     return model
 
 def get_confidence_style(conf):
@@ -239,7 +239,7 @@ def handle_image_detection(model, confidence, iou_threshold):
         
         with col1:
             st.subheader("Original Image")
-            st.image(image, use_container_width=True)
+            st.image(image, width='stretch')
         
         with col2:
             st.subheader("Detection Results")
@@ -252,7 +252,7 @@ def handle_image_detection(model, confidence, iou_threshold):
             
             # Display results with custom styling
             annotated_image = render_detections_with_custom_style(image, results, model)
-            st.image(annotated_image, use_container_width=True, channels="BGR")
+            st.image(annotated_image, width='stretch', channels="BGR")
             
             # Display inference time
             st.info(f"⏱️ Inference Time: {inference_time:.3f} seconds")
@@ -399,7 +399,7 @@ def process_video(model, video_path, confidence, iou_threshold):
         
         # Display current frame (every 30th frame to avoid lag)
         if frame_count % 30 == 0:
-            frame_placeholder.image(annotated_frame, channels="BGR", use_container_width=True)
+            frame_placeholder.image(annotated_frame, channels="BGR", width='stretch')
     
     cap.release()
     out.release()
