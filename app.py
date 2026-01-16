@@ -132,7 +132,60 @@ def draw_rectangle(image, pt1, pt2, color, thickness=2, line_type='solid'):
     else:  # solid
         cv2.rectangle(image, pt1, pt2, color, thickness)
 
-def render_detections_with_custom_style(image, results, model):
+def display_detection_results(annotated_image, results, inference_time):
+    """Display detection results in a nice panel format"""
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.image(annotated_image, width='stretch', channels="BGR")
+    
+    with col2:
+        # Inference time
+        st.metric("⏱️ Inference Time", f"{inference_time:.3f}s")
+        
+        # Detection statistics
+        detections = results.xyxy[0]
+        st.metric("🎯 Objects Detected", len(detections))
+        
+        if len(detections) > 0:
+            # Get class names and counts
+            class_names = results.names
+            class_counts = {}
+            
+            for det in detections:
+                class_id = int(det[5])
+                class_name = str(class_names[class_id]).capitalize()
+                class_counts[class_name] = class_counts.get(class_name, 0) + 1
+            
+            # Found summary
+            summary_text = ", ".join([f"{count} {class_name}" for class_name, count in sorted(class_counts.items())])
+            st.write(f"**Found:** {summary_text}")
+            
+            # Class breakdown
+            st.write("**Class Details:**")
+            for class_name, count in sorted(class_counts.items()):
+                st.write(f"• {class_name}: {count}")
+            
+            # Confidence distribution
+            st.write("**Confidence Levels:**")
+            confidences = detections[:, 4].numpy()
+            low_conf = sum(1 for c in confidences if c < 0.35)
+            mid_low_conf = sum(1 for c in confidences if 0.35 <= c < 0.60)
+            mid_high_conf = sum(1 for c in confidences if 0.60 <= c < 0.85)
+            high_conf = sum(1 for c in confidences if c >= 0.85)
+            
+            if low_conf > 0:
+                st.write(f"• VLow (<0.35): {low_conf}")
+            if mid_low_conf > 0:
+                st.write(f"• Low (0.35-0.60): {mid_low_conf}")
+            if mid_high_conf > 0:
+                st.write(f"• Mid (0.60-0.85): {mid_high_conf}")
+            if high_conf > 0:
+                st.write(f"• High (>0.85): {high_conf}")
+        else:
+            st.write("**No objects detected**")
+
+
     """Render detections with custom confidence-based styling for YOLOv5"""
     # Convert PIL to OpenCV format if needed
     if isinstance(image, Image.Image):
@@ -254,52 +307,9 @@ def handle_image_detection(model, confidence, iou_threshold):
             
             # Display results with custom styling
             annotated_image = render_detections_with_custom_style(image, results, model)
-            st.image(annotated_image, width='stretch', channels="BGR")
             
-            # Display inference time
-            st.info(f"⏱️ Inference Time: {inference_time:.3f} seconds")
-            
-            # Display detection statistics
-            detections = results.xyxy[0]
-            if len(detections) > 0:
-                st.write(f"**Objects detected:** {len(detections)}")
-                
-                # Get class names and counts
-                class_names = results.names
-                class_counts = {}
-                
-                for det in detections:
-                    class_id = int(det[5])
-                    class_name = str(class_names[class_id]).capitalize()
-                    class_counts[class_name] = class_counts.get(class_name, 0) + 1
-                
-                # Display summary in nice format
-                summary_text = ", ".join([f"{count} {class_name}" for class_name, count in sorted(class_counts.items())])
-                st.write(f"**Found:** {summary_text}")
-                
-                # Detailed breakdown
-                st.write("**Class Details:**")
-                for class_name, count in sorted(class_counts.items()):
-                    st.write(f"- {class_name}: {count}")
-                
-                # Display confidence distribution
-                st.write("**Confidence Levels:**")
-                confidences = detections[:, 4].numpy()
-                low_conf = sum(1 for c in confidences if c < 0.35)
-                mid_low_conf = sum(1 for c in confidences if 0.35 <= c < 0.60)
-                mid_high_conf = sum(1 for c in confidences if 0.60 <= c < 0.85)
-                high_conf = sum(1 for c in confidences if c >= 0.85)
-                
-                if low_conf > 0:
-                    st.write(f"- VLow (<0.35): {low_conf}")
-                if mid_low_conf > 0:
-                    st.write(f"- Low (0.35-0.60): {mid_low_conf}")
-                if mid_high_conf > 0:
-                    st.write(f"- Mid (0.60-0.85): {mid_high_conf}")
-                if high_conf > 0:
-                    st.write(f"- High (>0.85): {high_conf}")
-            else:
-                st.write("**No objects detected**")
+            # Display in nice panel format
+            display_detection_results(annotated_image, results, inference_time)
 
 def handle_video_detection(model, confidence, iou_threshold):
     """Handle video upload and detection"""
