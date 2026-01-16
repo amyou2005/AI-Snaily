@@ -247,7 +247,7 @@ def handle_image_detection(model, confidence, iou_threshold):
             # Run detection with timing
             with st.spinner("Running detection..."):
                 start_time = time.time()
-                results = model(image, conf=confidence, iou_threshold=iou_threshold)
+                results = model(image, conf_thres=confidence, iou_thres=iou_threshold)
                 inference_time = time.time() - start_time
             
             # Display results with custom styling
@@ -378,7 +378,7 @@ def process_video(model, video_path, confidence, iou_threshold):
         
         # Run detection with timing
         start_time = time.time()
-        results = model(frame, conf=confidence, iou_threshold=iou_threshold)
+        results = model(frame, conf_thres=confidence, iou_thres=iou_threshold)
         frame_inference_time = time.time() - start_time
         total_inference_time += frame_inference_time
         
