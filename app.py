@@ -186,6 +186,7 @@ def display_detection_results(annotated_image, results, inference_time):
             st.write("**No objects detected**")
 
 
+def render_detections_with_custom_style(image, results, model):
     """Render detections with custom confidence-based styling for YOLOv5"""
     # Convert PIL to OpenCV format if needed
     if isinstance(image, Image.Image):
