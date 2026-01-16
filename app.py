@@ -222,7 +222,7 @@ def main():
             
     except Exception as e:
         st.error(f"Error: {str(e)}")
-        st.info("Make sure you have installed the required packages: pip install -r requirements-v5.txt")
+        st.info("Make sure you have installed the required packages: pip install -r requirements.txt")
 
 def handle_image_detection(model, confidence, iou_threshold):
     """Handle image upload and detection"""
